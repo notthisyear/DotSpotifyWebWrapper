@@ -1,0 +1,40 @@
+﻿using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace DotSpotifyWebWrapper.Utilities
+{
+    internal static class JsonUtilities
+    {
+        private static readonly JsonSerializerSettings s_settings = new()
+        {
+            ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new SnakeCaseNamingStrategy()
+            }
+        };
+
+        public static (T?, Exception?) DeserializeJsonString<T>(this string serializedString, bool convertSnakeCaseToPascalCase = false)
+        {
+            if (string.IsNullOrEmpty(serializedString))
+                return (default, new ArgumentNullException(nameof(serializedString)));
+            return (convertSnakeCaseToPascalCase) ? serializedString.DeserializeJsonString<T>(s_settings) :
+                                                    serializedString.DeserializeJsonString<T>(new JsonSerializerSettings());
+        }
+
+        public static (T?, Exception?) DeserializeJsonString<T>(this string serializedString, JsonSerializerSettings settings)
+        {
+            if (string.IsNullOrEmpty(serializedString))
+                return (default, new ArgumentNullException(nameof(serializedString)));
+
+            try
+            {
+                return (JsonConvert.DeserializeObject<T>(serializedString, settings), default);
+            }
+            catch (Exception e) when (e is JsonReaderException || e is JsonSerializationException)
+            {
+                return (default, e);
+            }
+        }
+    }
+}

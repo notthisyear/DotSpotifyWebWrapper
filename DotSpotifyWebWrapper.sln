@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34723.18
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotSpotifyWebWrapper", "DotSpotifyWebWrapper.csproj", "{7A6FDA16-8556-46AB-9981-2F3243B52149}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7A6FDA16-8556-46AB-9981-2F3243B52149}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A6FDA16-8556-46AB-9981-2F3243B52149}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A6FDA16-8556-46AB-9981-2F3243B52149}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A6FDA16-8556-46AB-9981-2F3243B52149}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {49DD19D2-7273-4AAD-8C02-251D61CF0C4E}
+	EndGlobalSection
+EndGlobal
