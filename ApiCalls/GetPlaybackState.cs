@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DotSpotifyWebWrapper.ApiCalls.Shared;
 using DotSpotifyWebWrapper.Types;
+using DotSpotifyWebWrapper.Utilities;
 
 namespace DotSpotifyWebWrapper.ApiCalls
 {
@@ -74,26 +76,32 @@ namespace DotSpotifyWebWrapper.ApiCalls
         {
             var (success, isEmpty, data) = await ReadAndDeserializeJsonResponse<ResponseData>(true, (r, s) =>
             {
-                return default;
-            });
-            //    var itemContent = s.TryGetTokenFromRawInput("item");
-            //    if (itemContent == default)
-            //        return default;
-            //    var serializer = JsonExtensionMethods.GetSnakeCaseNameingSerializer();
+                if (string.IsNullOrEmpty(r.CurrentlyPlayingType))
+                    return new Exception("Empty response");
 
-            //    TrackObject? trackItem = default;
-            //    trackItem = itemContent.ToObject<TrackObject>(serializer);
-            //    if (trackItem == default)
-            //    {
-            //        var episodeItem = itemContent.ToObject<EpisodeObject>(serializer);
-            //        if (episodeItem != default)
-            //            r.TrackOrEpisode = new() { Second = episodeItem! };
-            //    }
-            //    else
-            //    {
-            //        r.TrackOrEpisode = new() { First = trackItem };
-            //    }
-            //    return default;
+                var itemContent = s.TryGetContentForToken("item");
+                if (string.IsNullOrEmpty(itemContent))
+                    return new Exception("Got not find item token in response"); ;
+
+                if (r.CurrentlyPlayingType.Equals("track", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var (track, e) = itemContent.DeserializeJsonString<TrackObject>(convertSnakeCaseToPascalCase: true);
+                    if (e == default)
+                        r.TrackOrEpisode = new() { First = track };
+                    return e;
+                }
+                else if (r.CurrentlyPlayingType.Equals("episode", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var (episode, e) = itemContent.DeserializeJsonString<EpisodeObject>(convertSnakeCaseToPascalCase: true);
+                    if (e == default)
+                        r.TrackOrEpisode = new() { Second = episode };
+                    return e;
+                }
+                else
+                {
+                    return new NotSupportedException($"'{r.CurrentlyPlayingType}' content is not supported");
+                }
+            });
 
             if (success)
                 Response = data;

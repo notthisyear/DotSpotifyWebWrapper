@@ -7,8 +7,14 @@
 
         public T2? Second { get; init; }
 
-        public bool IsFirst => First != default;
+        public bool Is<T>()
+            => typeof(T).IsAssignableTo(typeof(T1)) ? First != default :
+            typeof(T).IsAssignableTo(typeof(T2)) ? Second != default :
+            false;
 
-        public bool IsSecond => Second != default;
+        public T? Get<T>() where T : class
+            => typeof(T).IsAssignableTo(typeof(T1)) ? First as T :
+            typeof(T).IsAssignableTo(typeof(T2)) ? Second as T :
+            default;
     }
 }

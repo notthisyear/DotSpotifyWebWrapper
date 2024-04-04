@@ -5,15 +5,16 @@ using System.Threading.Tasks;
 
 namespace DotSpotifyWebWrapper
 {
-    internal class SpotifyHttpListener
+    internal class SpotifyHttpListener : IDisposable
     {
         public string ListeningOnUrl { get; }
 
+        #region Private fields
         private readonly HttpListener _listener;
-
         private readonly Thread _listenerThread;
-
         private Action<(HttpListenerRequest request, HttpListenerResponse response)>? _currentCallback;
+        private bool _disposedValue;
+        #endregion
 
         public SpotifyHttpListener(HttpListener listener, int port)
         {
@@ -28,6 +29,7 @@ namespace DotSpotifyWebWrapper
             _listenerThread.Start();
         }
 
+        #region Public methods
         public void CloseListener()
         {
             _listener.Close();
@@ -38,6 +40,7 @@ namespace DotSpotifyWebWrapper
             _currentCallback = callback;
 
         }
+        #endregion
 
         private void ListenForIncomingCalls()
         {
@@ -71,5 +74,23 @@ namespace DotSpotifyWebWrapper
                 }
             }
         }
+
+        #region Disposal
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                    _listener.Close();
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

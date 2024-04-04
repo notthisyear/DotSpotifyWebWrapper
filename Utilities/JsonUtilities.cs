@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace DotSpotifyWebWrapper.Utilities
@@ -35,6 +36,17 @@ namespace DotSpotifyWebWrapper.Utilities
             {
                 return (default, e);
             }
+        }
+
+        public static string TryGetContentForToken(this string jsonString, string token)
+        {
+            var obj = JObject.Parse(jsonString);
+            var matchingToken = obj.SelectToken(token);
+            if (matchingToken == default)
+                return string.Empty;
+
+            var s = matchingToken.ToString();
+            return s;
         }
     }
 }

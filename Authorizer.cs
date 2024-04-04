@@ -31,7 +31,7 @@ namespace DotSpotifyWebWrapper
         private static Timer? s_pkceAuthenticationCodeTimeoutTimer;
         #endregion
 
-        public static async Task<SpotifyAccessToken?> TryAuthorizationUsingAuthorizationCodePkce(SpotifyHttpListener listener, SpotifyHttpClient client, List<AccessScopeType> scopes, string clientId, int pkceVerifierLength, IProgress<string> progressReporter)
+        public static async Task<SpotifyAccessToken?> TryAuthorizationUsingAuthorizationCodePkce(SpotifyHttpListener listener, SpotifyHttpClient client, List<AccessScopeType> scopes, string clientId, int pkceVerifierLength, IProgress<string>? progressReporter = default)
         {
             if (pkceVerifierLength < 43 || pkceVerifierLength > 128)
                 throw new ArgumentOutOfRangeException($"{nameof(pkceVerifierLength)}", "Parameter must be within the range 43 - 128");
@@ -41,7 +41,7 @@ namespace DotSpotifyWebWrapper
 
             listener.RegisterCallbackForNextRequest(HandlePkceAuthorizationGetQuery);
             s_pkceAuthenticationCodeAwaiter = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            progressReporter.Report("Waiting for user to complete authentication process...");
+            progressReporter?.Report("Waiting for user to complete authentication process...");
 
             s_pkceAuthenticationCodeTimeoutTimer = new((s) =>
             {
@@ -62,11 +62,11 @@ namespace DotSpotifyWebWrapper
 
             if (!success)
             {
-                progressReporter.Report(codeOrError);
+                progressReporter?.Report(codeOrError);
                 return default;
             }
 
-            progressReporter.Report("Getting access token...");
+            progressReporter?.Report("Getting access token...");
 
             var timestamp = DateTime.UtcNow;
             var (requestSuccessful, statusCode, reason, token) = await client.SendRequestAndDeserializeResponse<SpotifyAccessToken>(HttpRequestMethod.Post,
@@ -75,7 +75,7 @@ namespace DotSpotifyWebWrapper
 
             if (!requestSuccessful)
             {
-                progressReporter.Report($"Token HTTP request failed ({statusCode}) - '{reason}'");
+                progressReporter?.Report($"Token HTTP request failed ({statusCode}) - '{reason}'");
             }
             else
             {
@@ -84,7 +84,7 @@ namespace DotSpotifyWebWrapper
                     token.SetExpiration(timestamp);
                     token.ParseScopes();
                 }
-                progressReporter.Report(token == default ? $"Token parsing failed - '{reason}'" : "Successfully got token!");
+                progressReporter?.Report(token == default ? $"Token parsing failed - '{reason}'" : "Successfully got token!");
             }
 
             return token;
