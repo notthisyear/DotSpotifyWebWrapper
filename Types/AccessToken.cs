@@ -24,6 +24,8 @@ namespace DotSpotifyWebWrapper.Types
 
         public string? RefreshToken { get; init; }
 
+        public DateTime TokenFetchedAt { get; set; }
+
         private DateTime _expirationTime = DateTime.MinValue;
 
         public bool HasScope(AccessScopeType scope)

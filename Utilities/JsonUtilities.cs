@@ -38,6 +38,24 @@ namespace DotSpotifyWebWrapper.Utilities
             }
         }
 
+        public static (string, Exception?) SerializeToJson<T>(this T obj, bool convertSnakeCaseToPascalCase = false)
+        {
+            return (convertSnakeCaseToPascalCase) ? obj.SerializeToJson(s_settings) :
+                                                    obj.SerializeToJson(new JsonSerializerSettings());
+        }
+
+        public static (string, Exception?) SerializeToJson<T>(this T obj, JsonSerializerSettings settings)
+        {
+            try
+            {
+                return (JsonConvert.SerializeObject(obj, settings), default);
+            }
+            catch (Exception e) when (e is JsonWriterException || e is JsonSerializationException)
+            {
+                return (string.Empty, e);
+            }
+        }
+
         public static string TryGetContentForToken(this string jsonString, string token)
         {
             var obj = JObject.Parse(jsonString);

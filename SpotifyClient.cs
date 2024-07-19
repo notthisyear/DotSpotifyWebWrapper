@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using DotSpotifyWebWrapper.ApiCalls;
 using DotSpotifyWebWrapper.Types;
+using DotSpotifyWebWrapper.Utilities;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace DotSpotifyWebWrapper
@@ -21,17 +22,23 @@ namespace DotSpotifyWebWrapper
             Tiff
         }
 
+        public bool HasAccessToken => _currentAccessToken != default;
+
         #region Private fields
         private readonly string _clientId;
         private readonly SpotifyHttpClient _client;
         private readonly SpotifyHttpListener _listener;
+        private readonly bool _cacheAccessToken = true;
         private SpotifyAccessToken? _currentAccessToken;
         private bool _disposedValue;
+        private static readonly string s_applicationDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName));
+        private static readonly string s_accessTokenCachePath = Path.Combine(s_applicationDataPath, "spotify_access_token.json");
         #endregion
 
-        public SpotifyClient(string clientId, int localListenerPort)
+        public SpotifyClient(string clientId, int localListenerPort, bool cacheAccessToken = false)
         {
             _clientId = clientId;
+            _cacheAccessToken = cacheAccessToken;
 
             // From https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/http/httpclient-guidelines
             var client = new HttpClient(new SocketsHttpHandler
@@ -42,6 +49,15 @@ namespace DotSpotifyWebWrapper
 
             _client = new(client);
             _listener = new(listener, localListenerPort);
+
+            if (_cacheAccessToken)
+            {
+                if (!Path.Exists(s_applicationDataPath))
+                    Directory.CreateDirectory(s_applicationDataPath);
+
+                if (Path.Exists(s_accessTokenCachePath))
+                    TryLoadCachedAccessToken();
+            }
         }
 
         #region Public methods
@@ -55,7 +71,11 @@ namespace DotSpotifyWebWrapper
             {
                 var missingScopes = scopes.Where(x => !_currentAccessToken.HasScope(x));
                 if (!missingScopes.Any())
+                {
+                    if (_currentAccessToken.HasExpired())
+                        return await RefreshToken(_currentAccessToken);
                     return true;
+                }
 
                 foreach (var existingScope in _currentAccessToken.Scopes!)
                     scopesToInclude.Add(existingScope);
@@ -76,7 +96,7 @@ namespace DotSpotifyWebWrapper
             };
 
             if (token != default)
-                _currentAccessToken = token;
+                SaveToken(token);
 
             return token != default;
         }
@@ -91,17 +111,19 @@ namespace DotSpotifyWebWrapper
                 return false;
 
             if (tokenStatus == TokenStatus.TokenExpired)
-            {
-                var newToken = await Authorizer.TryRefreshToken(_client, _clientId, _currentAccessToken);
-                if (newToken == default)
-                    return false;
-                _currentAccessToken = newToken;
-            }
+                return await RefreshToken(_currentAccessToken);
 
             var request = call.GetHttpRequestMessage(_currentAccessToken);
-            var response = await _client.SendHttpRequest(request);
-            await call.SetHttpResponseMessage(response);
-            return response != default;
+            try
+            {
+                var response = await _client.SendHttpRequest(request);
+                await call.SetHttpResponseMessage(response);
+                return response != default;
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
         }
 
         public async Task<(bool success, ImageFormat format)> DownloadImageAndSaveToFile(string url, string destinationPath)
@@ -131,6 +153,42 @@ namespace DotSpotifyWebWrapper
 
             await File.WriteAllBytesAsync(destinationPath, content);
             return (true, format);
+        }
+        #endregion
+
+        #region Private methods
+        private void TryLoadCachedAccessToken()
+        {
+            var (token, e) = JsonUtilities.DeserializeJsonString<SpotifyAccessToken>(File.ReadAllText(s_accessTokenCachePath));
+            if (e != default)
+                throw e;
+
+            token!.SetExpiration(token.TokenFetchedAt);
+            token.ParseScopes();
+            _currentAccessToken = token;
+
+        }
+
+        private async Task<bool> RefreshToken(SpotifyAccessToken currentToken)
+        {
+            var newToken = await Authorizer.TryRefreshToken(_client, _clientId, currentToken);
+            if (newToken == default)
+                return false;
+
+            SaveToken(newToken);
+            return true;
+        }
+
+        private void SaveToken(SpotifyAccessToken token)
+        {
+            _currentAccessToken = token;
+            if (_cacheAccessToken)
+            {
+                var (seralizedToken, e) = JsonUtilities.SerializeToJson(token);
+                if (e != default)
+                    throw e;
+                File.WriteAllText(s_accessTokenCachePath, seralizedToken);
+            }
         }
         #endregion
 

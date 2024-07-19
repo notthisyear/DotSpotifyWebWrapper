@@ -81,6 +81,7 @@ namespace DotSpotifyWebWrapper
             {
                 if (token != default)
                 {
+                    token.TokenFetchedAt = timestamp;
                     token.SetExpiration(timestamp);
                     token.ParseScopes();
                 }
@@ -102,6 +103,7 @@ namespace DotSpotifyWebWrapper
             {
                 if (refreshedToken != default)
                 {
+                    refreshedToken.TokenFetchedAt = timestamp;
                     refreshedToken.SetExpiration(timestamp);
                     refreshedToken.ParseScopes();
                 }
