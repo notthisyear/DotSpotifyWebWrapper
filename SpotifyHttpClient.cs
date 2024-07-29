@@ -23,7 +23,16 @@ namespace DotSpotifyWebWrapper
         }
 
         public async Task<HttpResponseMessage> SendHttpRequest(HttpRequestMessage request)
-            => await _client.SendAsync(request);
+        {
+            try
+            {
+                return await _client.SendAsync(request);
+            }
+            catch (HttpRequestException e)
+            {
+                return new HttpResponseMessage(e.StatusCode ?? HttpStatusCode.ServiceUnavailable);
+            }
+        }
 
         public async Task<(bool requestSuccessful, HttpStatusCode statusCode, string reason, T? deserializedResponse)> SendRequestAndDeserializeResponse<T>(HttpRequestMethod method, string requestUri, HttpContent? content = default)
         {
@@ -45,13 +54,20 @@ namespace DotSpotifyWebWrapper
             if ((method == HttpRequestMethod.Post || method == HttpRequestMethod.Put) && content == null)
                 throw new ArgumentNullException($"Argument {nameof(content)} cannot be null if HttpRequestMethod is either {HttpRequestMethod.Post} or {HttpRequestMethod.Put}");
 
-            return method switch
+            try
             {
-                HttpRequestMethod.Post => await _client.PostAsync(requestUri, content),
-                HttpRequestMethod.Put => await _client.PutAsync(requestUri, content),
-                HttpRequestMethod.Get => await _client.GetAsync(requestUri),
-                _ => throw new NotImplementedException($"HttpRequestMethod '{method}' is not implemented"),
-            };
+                return method switch
+                {
+                    HttpRequestMethod.Post => await _client.PostAsync(requestUri, content),
+                    HttpRequestMethod.Put => await _client.PutAsync(requestUri, content),
+                    HttpRequestMethod.Get => await _client.GetAsync(requestUri),
+                    _ => throw new NotImplementedException($"HttpRequestMethod '{method}' is not implemented"),
+                };
+            }
+            catch (HttpRequestException e)
+            {
+                return new HttpResponseMessage(e.StatusCode ?? HttpStatusCode.ServiceUnavailable);
+            }
         }
     }
 }
