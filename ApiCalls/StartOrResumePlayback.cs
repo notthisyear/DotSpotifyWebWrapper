@@ -29,7 +29,7 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         protected override List<AccessScopeType> Scopes => [AccessScopeType.UserModifyPlaybackState];
 
-        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint + "/play?device_id=" + _deviceId;
+        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint + "/play" + (string.IsNullOrEmpty(_deviceId) ? "" : ("?device_id=" + _deviceId));
 
         private readonly string _deviceId = deviceId;
 
