@@ -154,6 +154,17 @@ namespace DotSpotifyWebWrapper
             await File.WriteAllBytesAsync(destinationPath, content);
             return (true, format);
         }
+
+        public void ClearAccessToken()
+        {
+            if (!HasAccessToken)
+                return;
+
+            if (Path.Exists(s_accessTokenCachePath))
+                File.Delete(s_accessTokenCachePath);
+
+            _currentAccessToken = default;
+        }
         #endregion
 
         #region Private methods
