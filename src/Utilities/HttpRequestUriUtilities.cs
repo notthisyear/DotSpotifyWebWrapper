@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace DotSpotifyWebWrapper.Utilities
@@ -12,16 +11,21 @@ namespace DotSpotifyWebWrapper.Utilities
 
         private static readonly Regex s_parseQueryUri = GetParseQueryRegexUri();
 
-        public static string GetQueryUri(string baseUri, Dictionary<string, string> parameters)
+        public static string GetQueryStringOrEmpty(string key, string value, bool prefixQuestionMark = true)
+            => string.IsNullOrEmpty(value) ? string.Empty : $"{(prefixQuestionMark ? "?" : "")}{key}={value}";
+
+        public static string GetQueryString(Dictionary<string, string> parameters)
         {
-            StringBuilder sb = new();
-            sb.Append(baseUri);
-            if (parameters.Count > 0)
-            {
-                sb.Append('?');
-                sb.Append(string.Join("&", parameters.Select(p => $"{p.Key}={p.Value}")));
-            }
-            return sb.ToString();
+            if (parameters.Count == 0)
+                return string.Empty;
+
+            if (parameters.Count == 1)
+                return GetQueryStringOrEmpty(parameters.First().Key, parameters.First().Value);
+
+            return "?" +
+                string.Join("&", parameters
+                .Where(p => !string.IsNullOrEmpty(p.Value))
+                .Select(p => GetQueryStringOrEmpty(p.Key, p.Value, false)));
         }
 
         public static Dictionary<string, string> ParseQueryUri(string uri)

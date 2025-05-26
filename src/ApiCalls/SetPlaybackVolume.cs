@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using DotSpotifyWebWrapper.Types;
+using DotSpotifyWebWrapper.Utilities;
 
 namespace DotSpotifyWebWrapper.ApiCalls
 {
@@ -11,8 +12,13 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         protected override List<AccessScopeType> Scopes => [AccessScopeType.UserModifyPlaybackState];
 
-        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint + "/volume?volume_percent=" + _percent +
-            (string.IsNullOrEmpty(_deviceId) ? string.Empty : $"&device_id={_deviceId}");
+        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint +
+            "/volume" +
+            HttpRequestUriUtilities.GetQueryString(new()
+            {
+                {"volume_percent", $"{_percent}"},
+                {"device_id", _deviceId }
+            });
 
         private readonly int _percent = percent;
 

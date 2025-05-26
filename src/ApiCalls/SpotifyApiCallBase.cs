@@ -15,7 +15,8 @@ namespace DotSpotifyWebWrapper.ApiCalls
         GetPlaybackState,
         StartOrResumePlayback,
         PausePlayback,
-        SetPlaybackVolume
+        SetPlaybackVolume,
+        GetTrack
     }
 
     public abstract class SpotifyApiCallBase
@@ -27,7 +28,9 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         public HttpStatusCode ReturnStatusCode { get; private set; }
 
-        public string? ErrorReasonString { get; private set; }
+        public string ErrorReasonString { get; private set; } = string.Empty;
+
+        public string ResponseContent { get; private set; } = string.Empty;
         #endregion
 
         #region Protected properties
@@ -79,6 +82,8 @@ namespace DotSpotifyWebWrapper.ApiCalls
             SuccessfulStatusCode = ResponseMessage != default && ResponseMessage.IsSuccessStatusCode;
             ReturnStatusCode = ResponseMessage?.StatusCode ?? HttpStatusCode.Unused;
             ErrorReasonString = ResponseMessage?.ReasonPhrase ?? "No response received";
+            if (ResponseMessage != default)
+                ResponseContent = await ResponseMessage.Content.ReadAsStringAsync();
             await ParseResponse();
         }
         #endregion

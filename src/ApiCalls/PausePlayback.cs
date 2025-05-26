@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using DotSpotifyWebWrapper.Types;
+using DotSpotifyWebWrapper.Utilities;
 
 namespace DotSpotifyWebWrapper.ApiCalls
 {
@@ -11,7 +12,9 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         protected override List<AccessScopeType> Scopes => [AccessScopeType.UserModifyPlaybackState];
 
-        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint + "/pause" + (string.IsNullOrEmpty(_deviceId) ? "" : ("?device_id=" + _deviceId));
+        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint +
+            "/pause" +
+            HttpRequestUriUtilities.GetQueryStringOrEmpty("device_id", _deviceId);
 
         private readonly string _deviceId = deviceId;
     }

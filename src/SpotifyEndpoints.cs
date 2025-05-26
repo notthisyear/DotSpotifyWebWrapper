@@ -13,5 +13,7 @@
         public const string UserBaseEndpoint = ApiBaseUrl + "me";
 
         public const string PlayerBaseEndpoint = UserBaseEndpoint + "/player";
+
+        public const string TracksEndpoint = ApiBaseUrl + "tracks";
     }
 }

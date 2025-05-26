@@ -137,7 +137,7 @@ namespace DotSpotifyWebWrapper
                 { "code_challenge_method", "S256" },
                 { "code_challenge", codeChallenge },
             };
-            return HttpRequestUriUtilities.GetQueryUri(SpotifyEndpoint.AuthorizeEndpoint, parameters);
+            return SpotifyEndpoint.AuthorizeEndpoint + HttpRequestUriUtilities.GetQueryString(parameters);
         }
 
         private static FormUrlEncodedContent GetPkceFetchContent(string code, string listeningOnUrl, string clientId, string codeVerifier)
