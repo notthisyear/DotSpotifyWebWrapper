@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using DotSpotifyWebWrapper.ApiCalls.Shared;
 using DotSpotifyWebWrapper.Types;
 
@@ -86,9 +85,9 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         protected override List<AccessScopeType> Scopes => [AccessScopeType.UserReadPrivate, AccessScopeType.UserReadEmail];
 
-        protected override async Task ParseResponse()
+        protected override void ParseResponse()
         {
-            var (success, _, data) = await ReadAndDeserializeJsonResponse<ResponseData>();
+            var (success, data) = ReadAndDeserializeJsonResponse<ResponseData>();
             if (success)
                 Response = data;
         }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using DotSpotifyWebWrapper.ApiCalls.Shared;
 using DotSpotifyWebWrapper.Types;
 using DotSpotifyWebWrapper.Utilities;
@@ -123,9 +122,9 @@ namespace DotSpotifyWebWrapper.ApiCalls
         private readonly string _trackId = trackId;
         private readonly string _market = market;
 
-        protected override async Task ParseResponse()
+        protected override void ParseResponse()
         {
-            var (success, _, data) = await ReadAndDeserializeJsonResponse<ResponseData>(false);
+            var (success, data) = ReadAndDeserializeJsonResponse<ResponseData>();
             if (success)
                 Response = data;
         }

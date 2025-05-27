@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DotSpotifyWebWrapper.ApiCalls.Shared;
 using DotSpotifyWebWrapper.Types;
 using DotSpotifyWebWrapper.Utilities;
 
@@ -16,7 +17,8 @@ namespace DotSpotifyWebWrapper.ApiCalls
         StartOrResumePlayback,
         PausePlayback,
         SetPlaybackVolume,
-        GetTrack
+        GetTrack,
+        GetCurrentlyPlayingTrack
     }
 
     public abstract class SpotifyApiCallBase
@@ -30,7 +32,9 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         public string ErrorReasonString { get; private set; } = string.Empty;
 
-        public string ResponseContent { get; private set; } = string.Empty;
+        public virtual bool ReturnsErrorContent { get; } = true;
+
+        public ErrorObject Error { get; private set; }
         #endregion
 
         #region Protected properties
@@ -46,7 +50,13 @@ namespace DotSpotifyWebWrapper.ApiCalls
         #endregion
 
         #region Private constants
+        private string _responseContent = string.Empty;
         private const string AuthorizationHeaderKey = "Authorization";
+        #endregion
+
+        #region Public method
+        public string GetFormattedError()
+            => ReturnsErrorContent ? $"{Error.Status} - {Error.Message}" : "No error info";
         #endregion
 
         #region Internal methods
@@ -78,38 +88,43 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         internal async Task SetHttpResponseMessage(HttpResponseMessage? response)
         {
-            ResponseMessage = response;
-            SuccessfulStatusCode = ResponseMessage != default && ResponseMessage.IsSuccessStatusCode;
-            ReturnStatusCode = ResponseMessage?.StatusCode ?? HttpStatusCode.Unused;
-            ErrorReasonString = ResponseMessage?.ReasonPhrase ?? "No response received";
-            if (ResponseMessage != default)
-                ResponseContent = await ResponseMessage.Content.ReadAsStringAsync();
-            await ParseResponse();
+            SuccessfulStatusCode = response != default && response.IsSuccessStatusCode;
+            ReturnStatusCode = response?.StatusCode ?? HttpStatusCode.Unused;
+            ErrorReasonString = response?.ReasonPhrase ?? "No response received";
+
+            if (response != default)
+                _responseContent = await response.Content.ReadAsStringAsync();
+
+            if (SuccessfulStatusCode)
+            {
+                ParseResponse();
+            }
+            else if (ReturnsErrorContent)
+            {
+                var (success, errorResponse) = ReadAndDeserializeJsonResponse<ErrorResponse>();
+                if (success)
+                    Error = errorResponse.Error;
+            }
+
         }
         #endregion
 
         #region Protected methods
         protected virtual void AddBodyToRequestIfNeeded(HttpRequestMessage request) { }
 
-        protected virtual Task ParseResponse() => Task.CompletedTask;
+        protected virtual void ParseResponse() { }
 
         protected virtual string GetEndpoint() => Endpoint;
 
-        protected async Task<(bool success, bool isEmpty, T? response)> ReadAndDeserializeJsonResponse<T>(bool emptyResponseValid = false, CustomResponseHandler<T>? customResponseHandler = default)
+        protected (bool success, T? response) ReadAndDeserializeJsonResponse<T>(bool emptyResponseValid = false, CustomResponseHandler<T>? customResponseHandler = default)
         {
-            if (SuccessfulStatusCode && (ResponseMessage?.IsSuccessStatusCode ?? false))
-            {
-                var content = await ResponseMessage.Content.ReadAsStringAsync();
-                if (string.IsNullOrEmpty(content))
-                    return (emptyResponseValid, true, default);
+            if (string.IsNullOrEmpty(_responseContent))
+                return (emptyResponseValid, default);
 
-                var (r, e) = content.DeserializeJsonString<T>(convertSnakeCaseToPascalCase: true);
-                if (customResponseHandler != default)
-                    e = customResponseHandler.Invoke(r!, content);
-                return (e == default, false, r);
-            }
-
-            return (false, true, default);
+            var (r, e) = _responseContent.DeserializeJsonString<T>(convertSnakeCaseToPascalCase: true);
+            if (customResponseHandler != default)
+                e = customResponseHandler.Invoke(r!, _responseContent);
+            return (e == default, r);
         }
         #endregion
 

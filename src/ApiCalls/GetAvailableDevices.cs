@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using DotSpotifyWebWrapper.ApiCalls.Shared;
 using DotSpotifyWebWrapper.Types;
 
@@ -26,9 +25,9 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint + "/devices";
 
-        protected override async Task ParseResponse()
+        protected override void ParseResponse()
         {
-            var (success, iaEmpty, data) = await ReadAndDeserializeJsonResponse<ResponseData>(emptyResponseValid: true);
+            var (success, data) = ReadAndDeserializeJsonResponse<ResponseData>(emptyResponseValid: true);
             if (success)
                 Response = data;
         }

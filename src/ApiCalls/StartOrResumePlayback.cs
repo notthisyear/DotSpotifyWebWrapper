@@ -65,7 +65,7 @@ namespace DotSpotifyWebWrapper.ApiCalls
             var hasUris = Uris != default && Uris.Length > 0;
 
             if (hasUris)
-                throw new NotImplementedException("StartOrResumePlayback does not yet support adding URIs to the Put request");
+                throw new NotImplementedException("StartOrResumePlayback does not yet support adding URIs to the PUT request");
 
             if (hasContextUri)
             {

@@ -6,7 +6,7 @@ using DotSpotifyWebWrapper.Utilities;
 
 namespace DotSpotifyWebWrapper.ApiCalls
 {
-    public sealed class GetPlaybackState : SpotifyApiCallBase
+    public sealed class GetCurrentlyPlayingTrack(string market = "") : SpotifyApiCallBase
     {
         public record ResponseData
         {
@@ -31,7 +31,7 @@ namespace DotSpotifyWebWrapper.ApiCalls
             public ContextObject? Context { get; init; }
 
             /// <summary>
-            /// Unix Millisecond Timestamp when data was fetched.
+            /// Unix Millisecond Timestamp when playback state was last changed.
             /// </summary>
             public long Timestamp { get; init; }
 
@@ -63,13 +63,18 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
         public ResponseData? Response { get; private set; }
 
-        public override SpotifyApiCallType ApiCall => SpotifyApiCallType.GetPlaybackState;
+        public override SpotifyApiCallType ApiCall => SpotifyApiCallType.GetCurrentlyPlayingTrack;
 
         protected override HttpRequestMethod RequestMethod => HttpRequestMethod.Get;
 
-        protected override List<AccessScopeType> Scopes => [AccessScopeType.UserReadPlaybackState];
+        protected override List<AccessScopeType> Scopes => [AccessScopeType.UserReadCurrentlyPlaying];
 
-        protected override string Endpoint => SpotifyEndpoint.PlayerBaseEndpoint;
+        protected override string Endpoint =>
+          SpotifyEndpoint.PlayerBaseEndpoint +
+            "/currently-playing" +
+            HttpRequestUriUtilities.GetQueryStringOrEmpty("market", _market);
+
+        private readonly string _market = market;
 
         protected override void ParseResponse()
         {
@@ -107,3 +112,4 @@ namespace DotSpotifyWebWrapper.ApiCalls
         }
     }
 }
+
