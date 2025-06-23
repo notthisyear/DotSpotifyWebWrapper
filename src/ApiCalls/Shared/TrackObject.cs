@@ -13,7 +13,7 @@
         /// The artists who performed the track.
         /// <para>Each artist object includes a link in href to more detailed information about the artist.</para>
         /// </summary>
-        public ArtistObject[]? Artists { get; init; }
+        public SimplifiedArtistObject[]? Artists { get; init; }
 
         /// <summary>
         /// A list of the countries in which the track can be played, identified by their <a href="http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2">ISO 3166-1 alpha-2</a> code.
