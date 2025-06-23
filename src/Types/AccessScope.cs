@@ -20,7 +20,10 @@ namespace DotSpotifyWebWrapper.Types
         UserModifyPlaybackState,
 
         [AccessScope("user-read-currently-playing", "Read access to a user’s currently playing content.", "Read your currently playing content.")]
-        UserReadCurrentlyPlaying
+        UserReadCurrentlyPlaying,
+
+        [AccessScope("user-read-playback-position", "Read your position in content you have played.", "Read your position in content you have played.")]
+        UserReadPlaybackPosition
     }
 
     [AttributeUsage(AttributeTargets.Field)]

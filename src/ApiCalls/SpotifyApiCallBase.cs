@@ -18,7 +18,8 @@ namespace DotSpotifyWebWrapper.ApiCalls
         PausePlayback,
         SetPlaybackVolume,
         GetTrack,
-        GetCurrentlyPlayingTrack
+        GetCurrentlyPlayingTrack,
+        GetEpisode
     }
 
     public abstract class SpotifyApiCallBase
