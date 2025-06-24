@@ -85,7 +85,7 @@ namespace DotSpotifyWebWrapper.ApiCalls
 
                 var itemContent = s.TryGetContentForToken("item");
                 if (string.IsNullOrEmpty(itemContent))
-                    return new Exception("Got not find item token in response"); ;
+                    return default;
 
                 if (r.CurrentlyPlayingType.Equals("track", StringComparison.InvariantCultureIgnoreCase))
                 {
